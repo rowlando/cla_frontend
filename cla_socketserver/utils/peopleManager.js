@@ -56,6 +56,27 @@ module.exports = {
     }
 	},
 
+  sendDOMChanges: function(nsp, socket, data) {
+    console.log(data);
+    person = this.findPersonBySocket(socket, this.people);
+    if (typeof person !== 'undefined') {
+      utils.sendToAllClientsInChannel(nsp, 'mirror', 'mirror', data);
+    }
+  },
+
+  startViewingDOM: function(nsp, socket) {
+    person = this.findPersonBySocket(socket, this.people);
+    if (typeof person !== 'undefined') {
+      person.startViewingDOM(socket);
+    }
+  },
+  stopViewingDOM: function(nsp, socket) {
+    person = this.findPersonBySocket(socket, this.people);
+    if (typeof person !== 'undefined') {
+      person.stopViewingDOM(socket);
+    }
+  },
+
 	getPeopleViewingCase: function(caseref) {
 		var peopleViewing = [];
 
@@ -86,4 +107,4 @@ module.exports = {
     });
     return _.countBy(appVersions);
   }
-}
+};

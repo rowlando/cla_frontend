@@ -62,7 +62,9 @@
       paths.src + 'vendor/angular-hotkeys/build/hotkeys.js',
       paths.src + 'vendor/angular-local-storage/dist/angular-local-storage.js',
       paths.src + 'javascripts/vendor/diff-match-patch/angular-diff-match-patch.js',
-      paths.src + 'javascripts/vendor/diff-match-patch/google-diff-match-patch.js'
+      paths.src + 'javascripts/vendor/diff-match-patch/google-diff-match-patch.js',
+      paths.src + 'vendor/mutation-summary/src/mutation-summary.js',
+      paths.src + 'vendor/mutation-summary/util/tree-mirror.js'
     ],
     app: [
       paths.src + 'javascripts/app/js/app.js',

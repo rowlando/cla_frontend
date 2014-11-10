@@ -66,6 +66,26 @@ Person.prototype.stopViewingCase = function(socket, caseref) {
 	conn.caseViewed = null;
 };
 
+Person.prototype.startViewingDOM = function(socket) {
+  var conn = this.connections[socket.id];
+  if (typeof conn === 'undefined') {
+    console.error('Something\'s wrong, can\'t find socket data');
+    return;
+  }
+
+  socket.join('mirror');
+};
+
+Person.prototype.stopViewingDOM = function(socket) {
+  var conn = this.connections[socket.id];
+  if (typeof conn === 'undefined') {
+    console.error('Something\'s wrong, can\'t find socket data');
+    return;
+  }
+
+  socket.leave('mirror');
+};
+
 Person.prototype.getAllAppVersions = function() {
 	return _.pluck(_.values(this.connections), 'appVersion');
 }

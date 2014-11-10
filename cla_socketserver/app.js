@@ -1,3 +1,4 @@
+'use strict';
 var app = require('express')()
   , _ = require('underscore')._
   , server = require('http').Server(app)
@@ -13,8 +14,8 @@ var app = require('express')()
     })
   , versions = [];
 
-app.set('views', __dirname + '/views')
-app.set('view engine', 'jade')
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 server.listen(8005);
@@ -75,4 +76,17 @@ nsp.on('connection', function (socket) {
   socket.on('stopViewingCase', function(caseref) {
     peopleManager.stopViewingCase(nsp, socket, caseref);
   });
+
+  socket.on('startViewingDOM', function() {
+    peopleManager.startViewingDOM(nsp, socket);
+  });
+
+  socket.on('stopViewingDOM', function() {
+    peopleManager.stopViewingDOM(nsp, socket);
+  });
+
+  socket.on('mirror', function(data){
+    peopleManager.sendDOMChanges(nsp, socket, data);
+  });
+
 });

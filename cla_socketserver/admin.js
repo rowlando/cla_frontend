@@ -1,8 +1,10 @@
+"use strict";
 var _ = require('underscore')._
   , peopleManager = require('./utils/peopleManager')
   , utils = require('./utils/utils')
   , MSG_OPTIONS = {
-    '1': 'Please refresh your browser.'
+    '1': 'Please refresh your browser.',
+    '2': 'Mirror Request'
   };
 
 
@@ -13,6 +15,13 @@ function getViews(nsp) {
       err.status = 403;
       throw err;
     }
+  }
+
+  function mirrorRequest(req, res, socketIDs) {
+    _.each(socketIDs, function (socketID) {
+      utils.sendToClient(nsp, socketID, 'mirrorRequest', '');
+    });
+    res.send("Done");
   }
 
   return {
@@ -37,22 +46,28 @@ function getViews(nsp) {
     sendToClients: function (req, res) {
       validateMsg(req.body.msg);
 
+
       var socketIDs = req.body.socketID;
 
       if (!_.isArray(socketIDs)) {
         socketIDs = [socketIDs];
       }
 
-      _.each(socketIDs, function(socketID) {
+      if (req.body.msg == '2') {
+        return mirrorRequest(req, res, socketIDs);
+      }
+      _.each(socketIDs, function (socketID) {
         utils.sendToClient(nsp, socketID, 'systemMessage', req.body.msg);
-      })
+      });
       res.send("Done");
-    }
-  }
+    },
+
+
+  };
 }
 
 module.exports = {
-  install: function(app, nsp) {
+  install: function (app, nsp) {
     var views = getViews(nsp);
 
     app.get('/admin/', views.admin);

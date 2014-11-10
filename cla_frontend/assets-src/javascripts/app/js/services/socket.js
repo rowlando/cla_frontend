@@ -49,10 +49,58 @@
           }
         });
 
+        // VIEWING DOM
+        postal.subscribe({
+          channel: 'mirror',
+          topic: 'startViewingDOM',
+          callback: function() {
+            socket.emit('startViewingDOM');
+          }
+        });
+
+        postal.subscribe({
+          channel: 'mirror',
+          topic: 'stopViewingDOM',
+          callback: function() {
+            socket.emit('stopViewingDOM');
+          }
+        });
+
         socket.on('peopleViewing', function(data) {
           $rootScope.peopleViewingCase = _.without(data, $rootScope.user.username);
           $rootScope.$apply();
           // console.log('got people viewing case: '+$rootScope.peopleViewingCase);
+        });
+
+        socket.on('mirrorRequest', function () {
+
+          socket.emit('mirror', { base: location.href.match(/^(.*\/)[^\/]*$/)[1] });
+
+          var mirror =  new TreeMirrorClient(document, {
+            initialize: function(rootId, children) {
+              socket.emit('mirror', JSON.stringify({
+                f: 'initialize',
+                args: [rootId, children]
+              }));
+            },
+            applyChanged: function(removed, addedOrMoved, attributes, text) {
+              socket.emit('mirror', JSON.stringify({
+                f: 'applyChanged',
+                args: [removed, addedOrMoved, attributes, text]
+              }));
+            }
+          });
+          socket.onclose = function(){
+            mirror.disconnect();
+          };
+        });
+
+        socket.on('mirror', function(data) {
+          postal.publish({
+            channel: 'mirror',
+            topic: 'mirror',
+            data: data
+          });
         });
       }
 

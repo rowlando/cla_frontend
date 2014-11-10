@@ -27,6 +27,82 @@
       }]
     };
 
+    defs.MirrorState = {
+      parent: 'layout',
+      name: 'mirror',
+      controller: 'MirrorCtrl',
+      url: APP_BASE_URL+'mirror/',
+      templateUrl: 'mirror.html',
+      onEnter: ['postal', '$window', function(postal, $window) {
+        var document = $window.document;
+
+        var base;
+
+        var mirror = new TreeMirror(document, {
+          createElement: function(tagName) {
+            if (tagName === 'SCRIPT') {
+              var node = document.createElement('NO-SCRIPT');
+              node.style.display = 'none';
+              return node;
+            }
+
+            if (tagName === 'HEAD') {
+              var node = document.createElement('HEAD');
+              node.appendChild(document.createElement('BASE'));
+              node.firstChild.href = base;
+              return node;
+            }
+          }
+        });
+
+        function clearPage() {
+          while (document.firstChild) {
+            document.removeChild(document.firstChild);
+          }
+        }
+
+        function handleMessage(msg) {
+          if (msg.clear)
+            clearPage();
+          else if (msg.base)
+            base = msg.base;
+          else
+            mirror[msg.f].apply(mirror, msg.args);
+        }
+
+        postal.publish({
+          channel : 'mirror',
+          topic   : 'startViewingDOM',
+          data: { }
+        });
+        postal.subscribe({
+          channel: 'mirror',
+          topic: 'mirror',
+          callback: function(data){
+            var msg = JSON.parse(data);
+            if (msg instanceof Array) {
+              msg.forEach(function(subMessage) {
+                handleMessage(JSON.parse(subMessage));
+              });
+            } else {
+              handleMessage(msg);
+            }
+            console.log(msg);
+          }
+        });
+
+
+      }],
+      onExit: ['postal', function(postal) {
+
+        postal.publish({
+          channel : 'mirror',
+          topic   : 'stopViewingDOM',
+          data: {}
+        });
+      }]
+    };
+
     defs.CaseListState = {
       name: 'case_list',
       parent: 'layout',
