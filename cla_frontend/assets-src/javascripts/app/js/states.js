@@ -35,11 +35,9 @@
       templateUrl: 'mirror.html',
       onEnter: ['postal', '$window', function(postal, $window) {
         var document = $window.document;
-
         var base;
-
         var mirror = new TreeMirror(document, {
-          createElement: function(tagName) {
+          createElement: function (tagName) {
             if (tagName === 'SCRIPT') {
               var node = document.createElement('NO-SCRIPT');
               node.style.display = 'none';
@@ -55,49 +53,52 @@
           }
         });
 
-        function clearPage() {
+        function clearPage () {
           while (document.firstChild) {
             document.removeChild(document.firstChild);
           }
         }
 
-        function handleMessage(msg) {
-          if (msg.clear)
-            clearPage();
-          else if (msg.base)
+        function handleMessage (msg) {
+          if (msg.base) {
             base = msg.base;
-          else
+          }
+
+          if (msg.clear) {
+            clearPage();
+          } else {
             mirror[msg.f].apply(mirror, msg.args);
+          }
         }
 
         postal.publish({
-          channel : 'mirror',
-          topic   : 'startViewingDOM',
-          data: { }
+          channel: 'mirror',
+          topic: 'startViewingDOM',
+          data: {}
         });
+
         postal.subscribe({
           channel: 'mirror',
           topic: 'mirror',
-          callback: function(data){
-            var msg = JSON.parse(data);
-            if (msg instanceof Array) {
-              msg.forEach(function(subMessage) {
+          callback: function (data){
+            if (typeof data !== 'object') {
+              data = JSON.parse(data);
+            }
+
+            if (data instanceof Array) {
+              data.forEach(function(subMessage) {
                 handleMessage(JSON.parse(subMessage));
               });
             } else {
-              handleMessage(msg);
+              handleMessage(data);
             }
-            console.log(msg);
           }
         });
-
-
       }],
-      onExit: ['postal', function(postal) {
-
+      onExit: ['postal', function (postal) {
         postal.publish({
-          channel : 'mirror',
-          topic   : 'stopViewingDOM',
+          channel: 'mirror',
+          topic: 'stopViewingDOM',
           data: {}
         });
       }]

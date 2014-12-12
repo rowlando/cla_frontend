@@ -69,12 +69,10 @@
         socket.on('peopleViewing', function(data) {
           $rootScope.peopleViewingCase = _.without(data, $rootScope.user.username);
           $rootScope.$apply();
-          // console.log('got people viewing case: '+$rootScope.peopleViewingCase);
         });
 
         socket.on('mirrorRequest', function () {
-
-          socket.emit('mirror', { base: location.href.match(/^(.*\/)[^\/]*$/)[1] });
+          socket.emit('mirror', { clear: true, base: location.href.match(/^(.*\/)[^\/]*$/)[1] });
 
           var mirror =  new TreeMirrorClient(document, {
             initialize: function(rootId, children) {
