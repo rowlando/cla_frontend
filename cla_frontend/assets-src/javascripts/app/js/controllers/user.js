@@ -20,8 +20,8 @@
 
     }])
     .controller('UserListCtrl',
-      ['$scope', 'users', 'User', 'form_utils', '$modal',
-        function($scope, users, User, form_utils, $modal) {
+      ['$scope', 'users', 'User', 'form_utils', '$modal', 'flash',
+        function($scope, users, User, form_utils, $modal, flash) {
           $scope.users = users;
           $scope.add_user = function(frm) {
             var user = new User(this.new_user),
@@ -43,6 +43,12 @@
               controller: 'ResetPasswordCtrl',
               size: 'sm',
               resolve: {user: [function(){return user;}]}
+            });
+          };
+
+          $scope.reset_lockout = function (user) {
+            user.$resetLockout().then(function() {
+              flash('Account unlocked successfully');
             });
           };
         }

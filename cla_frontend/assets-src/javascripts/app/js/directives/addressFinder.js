@@ -2,7 +2,7 @@
 (function(){
 
   angular.module('cla.directives')
-  .directive('addressFinder', ['AddressService', '$modal', '$q', '$timeout', function (AddressService, $modal, $q, $timeout) {
+  .directive('addressFinder', ['AddressService', '$modal', '$q', '$timeout', 'postal', function (AddressService, $modal, $q, $timeout, postal) {
     return  {
       restrict: 'A',
       link: function (scope, elem, attrs) {
@@ -18,6 +18,8 @@
         scope.findAddress = function () {
           elem.attr('disabled', true);
           scope.isLoading = true;
+
+          postal.publish({channel: 'AddressFinder', topic: 'search'});
 
           var modalOpts = {
             templateUrl: 'includes/address_finder.modal.html',
@@ -37,6 +39,11 @@
                     addresses: addresses,
                     postcode: elem.val()
                   });
+                }, function () {
+                  elem.removeAttr('disabled');
+                  scope.isLoading = false;
+
+                  deferred.reject();
                 });
 
                 return deferred.promise;
@@ -48,24 +55,31 @@
               var parts = response.chosenAddress.split('\n');
               var postcode = parts.pop();
               var address = parts.join('\n');
+              var streetSelector = attrs.addressFinder;
 
               // run inside timeout to avoid $digest clash
               $timeout(function () {
                 elem
                   .val(postcode)
                   .change();
-                angular.element('[name="' + attrs.addressFinder + '"]')
+                angular.element(streetSelector)
                   .val(address)
                   .change()
                   .focus();
               });
+
+              postal.publish({channel: 'AddressFinder', topic: 'selected'});
             } else {
+              postal.publish({channel: 'AddressFinder', topic: 'cancelled'});
+
               $timeout(function () {
                 elem.focus();
               });
             }
           };
           var onDismiss = function () {
+            postal.publish({channel: 'AddressFinder', topic: 'cancelled'});
+
             elem.focus();
           };
 

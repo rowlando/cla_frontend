@@ -11,6 +11,7 @@
 
 // local overrides to GDS toolkit
 @import "toolkit/design-patterns/buttons";
+@import "toolkit/design-patterns/css3";
 
 // basic styles
 @import "mixins";
@@ -58,6 +59,9 @@
 @import "design-patterns/hotkeys";
 @import "design-patterns/case-bar";
 @import "design-patterns/notes";
+@import "design-patterns/notes-history";
+@import "design-patterns/toggle-group";
+@import "design-patterns/callback-modal";
 
 // Views
 @import "views/dashboard";

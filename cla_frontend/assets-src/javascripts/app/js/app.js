@@ -88,8 +88,12 @@
       postal.subscribe({
         channel: 'system',
         topic: 'user.identified',
-        callback: function(user) {
-          window._paq.push(['setUserId', user.username]);
+        callback: function (user) {
+          try {
+            ga('set', '&uid', user.username);
+          } catch (err) {
+            console.warn('Google analytics is not installed', err);
+          }
         }
       });
 
@@ -126,10 +130,11 @@
       'sticky',
       'angular-loading-bar',
       'angulartics',
-      'angulartics.piwik',
+      'angulartics.google.analytics',
       'cfp.hotkeys',
       'LocalStorageModule',
-      'diff-match-patch'
+      'diff-match-patch',
+      'angularUtils.directives.dirPagination'
     ])
     .config(common_config)
     .run(common_run);
@@ -177,10 +182,11 @@
       'sticky',
       'angular-loading-bar',
       'angulartics',
-      'angulartics.piwik',
+      'angulartics.google.analytics',
       'cfp.hotkeys',
       'LocalStorageModule',
-      'diff-match-patch'
+      'diff-match-patch',
+      'angularUtils.directives.dirPagination'
     ])
     .config(common_config)
     .run(common_run);

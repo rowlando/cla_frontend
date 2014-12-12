@@ -1,10 +1,12 @@
 {% load staticfiles core_tags raven %}
 <!DOCTYPE html>
-<html lang="en" {% block html_attrs %}ng-csp{% endblock %}>
+<html lang="en" {% block html_attrs %}ng-csp{% endblock %}
+  data-analytics-id="{{ analytics_id }}"
+  data-analytics-domain="{{ analytics_domain }}">
+
   <head data-sentry-dsn="{% sentry_public_dsn %}"
     data-sentry-site="{{ raven_config_site }}"
-    data-socketio-server="{{ socketio_server_url }}"
-    data-piwik-hostname="{{ piwik_hostname }}">
+    data-socketio-server="{{ socketio_server_url }}">
     <meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7; IE=EDGE" />
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -39,6 +41,10 @@
 
     <header role="banner" id="global-header" class="{% block header_class %}{% endblock %}">
       <div class="header-wrapper">
+        <div class="header-global">
+          <a href="/" class="header-logo" target="_self"><img src="{% static 'images/gov.uk_logotype_crown.png' %}" width="23" height="20" alt=""> {{ proposition_title }}</a>
+        </div>
+
         {% if zone %}
           {% block search %}
           <form id="search" class="CaseSearch" action="{% url zone.LOGIN_REDIRECT_URL %}" method="get" role="search">
@@ -50,10 +56,6 @@
           </form>
           {% endblock %}
         {% endif %}
-
-        <div class="header-global">
-          <a href="/" class="header-logo" target="_self">{{ proposition_title }}</a>
-        </div>
 
         {% if zone %}
           <div class="UserMenu">
@@ -121,7 +123,7 @@
     <script src="{% static 'javascripts/lib.min.js' %}"></script>
     <script src="{% static 'javascripts/vendor/vanilla-js.js' %}"></script>
     <script src="{% staticmin 'javascripts/cla.main.js' %}"></script>
-    <script src="{% static 'javascripts/vendor/piwik.js' %}"></script>
+    <script src="{% static 'javascripts/vendor/analytics.js' %}"></script>
     {% block javascripts %}{% endblock %}
 
     {% block body_end %}{% endblock %}

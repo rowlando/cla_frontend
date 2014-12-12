@@ -15,8 +15,8 @@
 
   // SERVICES
   angular.module('cla.services')
-    .factory('Case', ['$http', '$claResource', 'DIAGNOSIS_SCOPE', 'ELIGIBILITY_STATES', 'REQUIRES_ACTION_BY', 'url_utils', 'moment',
-      function($http, $claResource, DIAGNOSIS_SCOPE, ELIGIBILITY_STATES, REQUIRES_ACTION_BY, url_utils, Moment) {
+    .factory('Case', ['$http', '$claResource', 'DIAGNOSIS_SCOPE', 'ELIGIBILITY_STATES', 'REQUIRES_ACTION_BY', 'url_utils', 'moment', '$q',
+      function($http, $claResource, DIAGNOSIS_SCOPE, ELIGIBILITY_STATES, REQUIRES_ACTION_BY, url_utils, Moment, $q) {
 
       var resource = $claResource('Case',
         url_utils.proxy('case/:caseref/'),
@@ -118,7 +118,10 @@
       };
 
       resource.prototype.canBeCalledBack = function(){
-        return this.created_by !== 'web' && this.callback_attempt < 3;
+        if (this.created_by === 'web') {
+          return this.callback_attempt === 0;
+        }
+        return this.callback_attempt < 3;
       };
 
       resource.prototype.createdByWeb = function () {
@@ -177,10 +180,6 @@
       };
 
       // Provider only endpoints
-      resource.prototype.isRequiresActionByProviderPreview = function(){
-        return this.requires_action_by === REQUIRES_ACTION_BY.PROVIDER_REVIEW;
-      };
-
       resource.prototype.$reject_case = function(data) {
         var url = url_utils.proxy('case/'+this.reference+'/reject/');
         return $http.post(url, data);
@@ -189,6 +188,20 @@
       resource.prototype.$close_case = function(data) {
         var url = url_utils.proxy('case/'+this.reference+'/close/');
         return $http.post(url, data);
+      };
+
+      resource.prototype.$reopen_case = function(data) {
+        var url = url_utils.proxy('case/'+this.reference+'/reopen/');
+        var deferred = $q.defer();
+        $http.post(url, data).then(function(response) {
+          // jshint -W055
+          deferred.resolve(new resource(response.data));
+          // jshint +W055
+        }, function(response) {
+          deferred.reject(response);
+        });
+
+        return deferred.promise;
       };
 
       resource.prototype.split_case = function(data) {
@@ -479,7 +492,24 @@
         return $http.post(url, data);
       };
 
+      resource.prototype.$resetLockout = function() {
+        var url = url_utils.proxy('user/'+this.username+'/reset_lockout/');
+        return $http.post(url, {});
+      };
+
       return resource;
+    }]);
+
+
+  angular.module('cla.services')
+    .factory('CSVUpload', ['$resource', 'url_utils', function ($resource, url_utils) {
+      return $resource(url_utils.proxy('csvupload/:id/'), {
+        'id': '@id',
+      }, {
+        'put': {method: 'PUT'},
+        'post': {method: 'POST', ignoreExceptions:[409]}
+
+      });
     }]);
 
   angular.module('cla.services.operator')

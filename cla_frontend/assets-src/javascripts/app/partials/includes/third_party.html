@@ -1,7 +1,9 @@
-<button href="" class="Button Button--secondary Button--add" ng-hide="case.thirdparty_details || add_thirdparty" ng-click="add_thirdparty=true;third_party_frm.$show()" name="add-thirdparty">Add third party</button>
+<div ng-class="{'Icon--formRow': !personal_details.reference && !personal_details_frm_visible}">
+  <button href="" class="Button Button--secondary Button--add" ng-hide="case.thirdparty_details || add_thirdparty" ng-click="showThirdParty(third_party_frm, true)" name="add-thirdparty">Add third party</button>
+</div>
 
 <section ng-show="case.thirdparty_details || add_thirdparty" id="third_party">
-  <div ng-click="third_party_frm.$show()" ng-hide="third_party_frm.$visible" class="VCard VCard--dark VCard-view">
+  <div ng-click="showThirdParty(third_party_frm)" ng-hide="third_party_frm.$visible" class="VCard VCard--dark VCard-view">
     <h2 class="VCard-legend">Third Party</h2>
     <!-- IF empty -->
     <p class="Notice" ng-hide="third_party.personal_details.full_name">Please enter third party details</p>
@@ -13,7 +15,9 @@
       <span ng-bind-html="third_party.personal_details.street|nl2br"></span>
     </p>
 
-    <p class="VCard-row Icon Icon--row Icon--call" ng-if="third_party.personal_details.home_phone || third_party.personal_details.mobile_phone">{{ third_party.personal_details.mobile_phone }}</p>
+    <p class="VCard-row Icon Icon--row Icon--call" ng-if="third_party.personal_details.home_phone || third_party.personal_details.mobile_phone" ng-class="{'Icon--red Icon--dontcall': third_party.personal_details.safe_to_contact !== 'SAFE', 'Icon--green': third_party.personal_details.safe_to_contact === 'SAFE'}">
+      <span ng-class="{'u-strike': third_party.personal_details.safe_to_contact !== 'SAFE'}">{{ third_party.personal_details.mobile_phone }}</span>
+    </p>
 
     <p class="VCard-row Icon Icon--row Icon--email" ng-if="third_party.personal_details.email">{{ third_party.personal_details.email }}</p>
 
@@ -38,24 +42,27 @@
       </span>
     </label>
 
+    <copy-user-address pd-edit="personal_details_frm_visible" pd-model="personal_details"></copy-user-address>
+
     <label class="FormRow FormRow--narrow cf" ng-class="{Error: third_party_frm.postcode.$invalid && thirdparty_submitted}">
       <span class="Error-message" ng-if="third_party_frm.postcode.$error.server">{{ errors.postcode }}</span>
       <span class="Icon Icon--formRow Icon--location">
-        <span editable-text="third_party.personal_details.postcode" e-name="postcode" e-class="FormRow-field--full" e-placeholder="Postcode" e-server-error e-address-finder="street"></span>
+        <span editable-text="third_party.personal_details.postcode" e-name="postcode" e-class="FormRow-field--full" e-placeholder="Postcode" e-server-error e-address-finder=".js-AF-ThirdPartyStreet"></span>
       </span>
     </label>
 
     <label class="FormRow FormRow--narrow cf" ng-class="{Error: third_party_frm.street.$invalid && thirdparty_submitted}">
       <span class="Error-message" ng-if="third_party_frm.street.$error.server">{{ errors.street }}</span>
       <span class="Icon Icon--formRow Icon--address">
-        <span editable-textarea="third_party.personal_details.street" e-name="street" e-class="FormRow-field--full" e-placeholder="Address" e-rows="6" e-server-error></span>
+        <span editable-textarea="third_party.personal_details.street" e-name="street" e-class="FormRow-field--full js-AF-ThirdPartyStreet" e-placeholder="Address" e-rows="6" e-server-error></span>
       </span>
     </label>
 
     <label class="FormRow FormRow--narrow cf" ng-class="{Error: third_party_frm.mobile_phone.$invalid && thirdparty_submitted}">
       <span class="Error-message" ng-if="third_party_frm.mobile_phone.$error.server">{{ errors.mobile_phone }}</span>
-      <span class="Icon--formRow Icon Icon--call">
+      <span class="Icon--formRow Icon">
         <span editable-text="third_party.personal_details.mobile_phone" e-name="mobile_phone" e-class="FormRow-field--full" e-placeholder="Contact number"></span>
+        <safe-to-contact person="third_party.personal_details"></safe-to-contact>
       </span>
     </label>
 
@@ -103,7 +110,7 @@
 
     <div class="FormActions cf">
       <button type="submit" class="Button" ng-click="thirdparty_submitted=true" name="save-thirdparty">Save</button>
-      <button type="reset" class="Button Button--text" ng-click="add_thirdparty=false;third_party_frm.$cancel()">Cancel</button>
+      <button type="reset" class="Button Button--text" ng-click="cancelThirdParty(third_party_frm)">Cancel</button>
     </div>
   </form>
 </section>

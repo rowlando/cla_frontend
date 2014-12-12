@@ -3,9 +3,27 @@
 
   angular.module('cla.controllers')
     .controller('EligibilityCheckCtrl',
-      ['$scope', 'Category', '$stateParams', 'flash', '$state', 'postal', 'moment',
-        function($scope, Category, $stateParams, flash, $state, postal, Moment){
+      ['$scope', 'Category', '$stateParams', 'flash', '$state', 'postal', 'moment', '_', 'IncomeWarningsService', 'SPECIFIC_BENEFITS', '$timeout',
+        function($scope, Category, $stateParams, flash, $state, postal, Moment, _, IncomeWarningsService, SPECIFIC_BENEFITS, $timeout){
           $scope.category_list = Category.query();
+          // set nass benefits to FALSE by default
+          $scope.eligibility_check.on_nass_benefits = $scope.eligibility_check.on_nass_benefits || false;
+
+          // income warnings
+          postal.subscribe({
+            channel: 'IncomeWarnings',
+            topic: 'update',
+            callback: function(data) {
+              $scope.incomeWarnings = data.warnings;
+            }
+          });
+
+          IncomeWarningsService.setEligibilityCheck($scope.eligibility_check);
+          $scope.incomeWarnings = IncomeWarningsService.warnings;
+          $scope.hasIncomeWarnings = function () {
+            return _.size($scope.incomeWarnings) > 0;
+          };
+
           $scope.warnings = {};
           $scope.oneMonthAgo = new Moment().add(1, 'days').subtract(1, 'months').format('Do MMMM, YYYY');
           var all_sections = [{
@@ -26,6 +44,8 @@
               template: 'includes/eligibility.expenses.html'
             }
           ];
+
+          $scope.specificBenefitsOptions = SPECIFIC_BENEFITS;
 
           var passported = function() {
             var _radio = $('#id_your_details-passported_benefits_0').get(0);
@@ -50,6 +70,26 @@
             var isFalse = function (fn) { return !fn(); };
             var r = tabHideRules[section.title].every(isFalse);
             return r;
+          };
+
+          $scope.hasSpecificBenefits = function () {
+            return $scope.eligibility_check.specific_benefits !== undefined && $scope.eligibility_check.specific_benefits !== null && typeof $scope.eligibility_check.specific_benefits === 'object';
+          };
+
+          $scope.benefitChange = function () {
+            var passported = _.some($scope.eligibility_check.specific_benefits, function (benefit) {
+              return benefit === true || benefit === '1';
+            });
+
+            if (passported) {
+              $scope.eligibility_check.on_passported_benefits = true;
+            } else {
+              $scope.eligibility_check.on_passported_benefits = false;
+            }
+
+            $timeout(function () {
+              $scope.updateTabs();
+            });
           };
 
           $scope.updateTabs = function () {
@@ -109,36 +149,40 @@
           };
 
           $scope.hasPartner = function () {
-            return $scope.eligibility_check.has_partner && $scope.eligibility_check.has_partner !== '0';
+            return $scope.eligibility_check.has_partner;
           };
 
-          $scope.hasZeroIncome = false;
-          var checkZeroIncome = function () {
-            var you = $scope.eligibility_check.you ? fieldsAllZero($scope.eligibility_check.you.income) : false;
+          $scope.tabWarningClass = function (section) {
+            var incomeWarnings = $scope.incomeWarnings;
+            var className = '';
 
-            if ($scope.hasPartner()) {
-              var partner = $scope.eligibility_check.you ? fieldsAllZero($scope.eligibility_check.partner.income) : false;
-              $scope.hasZeroIncome = you && partner ? true : false;
-            } else {
-              $scope.hasZeroIncome = you;
+            switch (section.title) {
+              case 'Income':
+                if (incomeWarnings.zeroIncome || incomeWarnings.negativeDisposable || incomeWarnings.housing) {
+                  className = 'is-warning';
+                }
+                break;
+              case 'Expenses':
+                if (incomeWarnings.negativeDisposable || incomeWarnings.housing) {
+                  className = 'is-warning';
+                }
+                break;
             }
 
-            if(!$scope.$$phase) {
-              $scope.$apply();
-            }
+            return className;
           };
-          var fieldsAllZero = function (fields) {
-            var total = false;
 
-            angular.forEach(fields, function(field) {
-              if (field && typeof field === 'object' && field.hasOwnProperty('per_interval_value')) {
-                total += parseInt(field.per_interval_value);
+          $scope.fieldWarningClass = function (warnings) {
+            var className = '';
+
+            angular.forEach(warnings, function (warning) {
+              if ($scope.incomeWarnings[warning]) {
+                className = 'is-warning';
               }
             });
 
-            return parseInt(total) <= 0 ? true : false;
+            return className;
           };
-          checkZeroIncome();
 
           $scope.isComplete = function (section) {
             var emptyInputs = angular.element('#' + section).find('input, select, textarea').filter(function() {
@@ -170,8 +214,6 @@
           };
 
           $scope.save = function () {
-            checkZeroIncome();
-
             $scope.setDefaultsInNonRequiredSections($scope.eligibility_check);
             $scope.eligibility_check.$update($scope.case.reference, function (data) {
               $scope.case.eligibility_check = data.reference;
@@ -183,13 +225,22 @@
               // updates the state of case.eligibility_state after each save
               $scope.case.state = data.state;
 
+              // publish eligibility save
+              postal.publish({
+                channel: 'EligibilityCheck',
+                topic: 'save',
+                data: {
+                  eligibilityCheck: data
+                }
+              });
+
               // fire a save notification
               flash('success', 'The means test has been saved. The current result is <strong>' + $scope.eligibilityText(data.state) + '</strong>');
 
               // refreshing the logs
               postal.publish({
-                channel : 'models',
-                topic   : 'Log.refresh'
+                channel: 'models',
+                topic: 'Log.refresh'
               });
             });
           };

@@ -58,13 +58,16 @@
       paths.src + 'vendor/socket.io-client/socket.io.js',
       paths.src + 'vendor/angular-socket-io/socket.js',
       paths.src + 'vendor/angulartics/src/angulartics.js',
-      paths.src + 'vendor/angulartics/src/angulartics-piwik.js',
+      paths.src + 'vendor/angulartics/src/angulartics-ga.js',
       paths.src + 'vendor/angular-hotkeys/build/hotkeys.js',
       paths.src + 'vendor/angular-local-storage/dist/angular-local-storage.js',
+      paths.src + 'vendor/angularUtils/src/directives/pagination/dirPagination.js',
       paths.src + 'javascripts/vendor/diff-match-patch/angular-diff-match-patch.js',
       paths.src + 'javascripts/vendor/diff-match-patch/google-diff-match-patch.js',
       paths.src + 'vendor/mutation-summary/src/mutation-summary.js',
-      paths.src + 'vendor/mutation-summary/util/tree-mirror.js'
+      paths.src + 'vendor/mutation-summary/util/tree-mirror.js',
+      paths.src + 'vendor/papaparse/papaparse.js', // csv upload
+      paths.src + 'vendor/FileSaver/FileSaver.js' // csv upload
     ],
     app: [
       paths.src + 'javascripts/app/js/app.js',

@@ -69,7 +69,7 @@
           utils.scrollTo(assignSubmit);
           assignSubmit.click();
           browser.get(caseUrl);
-          checkOutcomeCode('IRKB');
+          utils.checkLastOutcome('IRKB');
         });
       });
 
@@ -96,7 +96,7 @@
 
           expect(assignF2fBtn.isEnabled()).toBe(false);
 
-          element(by.css('textarea[name="notes"]')).sendKeys('test');
+          element(by.name('assign-notes')).sendKeys('assigning face to face');
           expect(assignF2fBtn.isEnabled()).toBe(true);
         });
       });
@@ -106,7 +106,7 @@
         browser.getCurrentUrl().then(function (caseUrl) {
           assignF2fBtn.click();
           browser.get(caseUrl);
-          checkOutcomeCode('SPFN');
+          utils.checkLastOutcome('SPFN');
         });
       });
 
@@ -130,7 +130,7 @@
           browser.getCurrentUrl().then(function (caseUrl) {
             modalSubmit.click();
             browser.get(caseUrl);
-            checkOutcomeCode('DECL');
+            utils.checkLastOutcome('DECL');
           });
         });
       });
@@ -157,7 +157,7 @@
             modalSubmit.click();
             browser.waitForAngular();
             browser.get(caseUrl);
-            checkOutcomeCode('DECL');
+            utils.checkLastOutcome('DECL');
           });
         });
       });
@@ -177,12 +177,7 @@
     element(by.css('input[name="code"][value="DECL"]')).click();
   }
 
-  function checkOutcomeCode (code) {
-    var codeSpan = element.all(by.binding('log.code')).get(0);
-    expect(codeSpan.getText()).toEqual(code);
-  }
-
   function gotoAltHelp () {
-    element(by.cssContainingText('.CaseBar-actions a', 'Alternative help')).click();
+    element(by.css('.CaseBar-actions a[ui-sref="case_detail.alternative_help"]')).click();
   }
 })();

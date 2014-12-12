@@ -56,15 +56,20 @@
       });
     },
 
+    checkLastOutcome: function(code) {
+      var codeSpan = element.all(by.css('.CaseHistory-label')).get(0);
+      expect(codeSpan.getText()).toEqual(code);
+    },
+
     scrollTo: function(elemFinder) {
-      var promise = browser.executeScript(function(elem) {
+      var promise = browser.driver.executeScript(function(elem) {
         elem.scrollIntoView(false);
       }, elemFinder);
       return promise;
     },
 
     scrollToBottom: function (element) {
-      browser.executeScript(function () {
+      browser.driver.executeScript(function () {
         arguments[0].scrollIntoView();
       }, element);
     },
@@ -125,9 +130,21 @@
 
     manuallySelectProvider: function (providerName) {
       var manualBtn = element(by.name('assign-manually'));
+      var label = element(by.cssContainingText('label.FormRow-label', providerName));
+
+      expect(manualBtn.isPresent()).toBe(true);
       this.scrollTo(manualBtn);
       manualBtn.click();
-      element(by.cssContainingText('input[name="provider"] + strong', providerName)).click();
+
+      this.scrollTo(label);
+      label.click();
+    },
+
+    manuallySetProvider: function (providerId) {
+      return browser.driver.executeScript(function(_id) {
+        var scope = angular.element('[name="assign_provider_form"]').scope();
+        scope.selected_provider.id = _id;
+      }, providerId);
     }
   };
 })();

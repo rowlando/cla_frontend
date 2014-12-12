@@ -16,7 +16,7 @@ from cla_common.constants import ADAPTATION_LANGUAGES, ELIGIBILITY_STATES, \
     TITLES, REQUIRES_ACTION_BY, THIRDPARTY_REASON, THIRDPARTY_RELATIONSHIP, \
     DIAGNOSIS_SCOPE, CONTACT_SAFETY, EXEMPT_USER_REASON, ECF_OPTIONS, \
     FEEDBACK_ISSUE, CASE_SOURCE, GENDERS, ETHNICITIES, RELIGIONS, \
-    SEXUAL_ORIENTATIONS, DISABILITIES
+    SEXUAL_ORIENTATIONS, DISABILITIES, ETHNICITIES_GROUPS, SPECIFIC_BENEFITS
 
 
 class Command(BaseCommand):
@@ -38,10 +38,10 @@ class Command(BaseCommand):
                                         ('FEEDBACK_ISSUE', FEEDBACK_ISSUE),
                                         ('CASE_SOURCE', CASE_SOURCE),
                                         ('GENDERS', GENDERS),
-                                        ('ETHNICITIES', ETHNICITIES),
                                         ('RELIGIONS', RELIGIONS),
                                         ('SEXUAL_ORIENTATIONS', SEXUAL_ORIENTATIONS),
                                         ('DISABILITIES', DISABILITIES),
+                                        ('SPECIFIC_BENEFITS', SPECIFIC_BENEFITS)
                                         ]:
                 l[json_name] = []
                 for k, v in iterator:
@@ -59,6 +59,22 @@ class Command(BaseCommand):
             for json_name, iterator in [('ECF_STATEMENT', ECF_OPTIONS)]:
                 l[json_name] = iterator
                 l_count += 1
+
+            for json_name, iterator, groups in [('ETHNICITIES', ETHNICITIES, ETHNICITIES_GROUPS)]:
+                l[json_name] = []
+                for k, v in iterator:
+                    group = None
+                    for group_k, group_v in groups.items():
+                        if k in group_v:
+                            group = group_k
+
+                    l[json_name].append({
+                        'value': k,
+                        'text': v,
+                        'group': group
+                    })
+                    l_count += 1
+
 
             l['STATIC_ROOT'] = static('.')
             l_count += 1

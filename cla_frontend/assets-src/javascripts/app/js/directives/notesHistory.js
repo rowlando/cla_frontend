@@ -2,7 +2,7 @@
   'use strict';
 
   angular.module('cla.directives')
-    .directive('notesHistory', ['$modal', function($modal) {
+    .directive('notesHistory', ['$modal', 'postal', function($modal, postal) {
       return {
         restrict: 'A',
         scope: {
@@ -10,13 +10,25 @@
         },
         link: function (scope, elem, attrs) {
           elem.on('click', function() {
+            postal.publish({
+              channel: 'NotesHistory',
+              topic: 'view',
+              data: {
+                label: scope.type
+              }
+            });
+
             scope.caseRef = attrs.notesHistory;
+
+            var onModalClose = function () {
+              elem.focus();
+            };
 
             $modal.open({
               templateUrl: 'notes.history.modal.html',
               scope: scope,
               controller: 'NotesHistoryModalCtl'
-            });
+            }).result.then(onModalClose, onModalClose);
           });
         }
       };
@@ -26,7 +38,7 @@
     .controller('NotesHistoryModalCtl',
       ['$scope', '$modalInstance', 'NotesHistory', 'dmp',
         function($scope, $modalInstance, NotesHistory, dmp) {
-          function updatePage() {
+          function getPages () {
             NotesHistory.query(
               {
                 case_reference: $scope.caseRef,
@@ -52,23 +64,18 @@
             });
           }
 
-          $scope.currentPage = 1;
-
-          $scope.goToNextPage = function() {
-            $scope.currentPage += 1;
-            updatePage();
-          };
-
-          $scope.goToPreviousPage = function() {
-            $scope.currentPage -= 1;
-            updatePage();
+          $scope.updatePage = function(page) {
+            $scope.currentPage = page;
+            getPages();
           };
 
           $scope.close = function () {
             $modalInstance.dismiss('cancel');
           };
 
-          updatePage();
+          $scope.currentPage = 1;
+
+          getPages();
         }
       ]
     );
