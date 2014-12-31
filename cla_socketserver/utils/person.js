@@ -4,6 +4,7 @@ var _ = require('underscore')._;
 function Person(username, userType) {
   this.username = username;
   this.userType = userType;
+  this.is_cla_superuser = false;
   this.connections = {};
 };
 

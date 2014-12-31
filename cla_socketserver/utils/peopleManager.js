@@ -57,7 +57,6 @@ module.exports = {
 	},
 
   sendDOMChanges: function(nsp, socket, data) {
-    console.log(data);
     person = this.findPersonBySocket(socket, this.people);
     if (typeof person !== 'undefined') {
       utils.sendToAllClientsInChannel(nsp, 'mirror', 'mirror', data);
@@ -66,13 +65,13 @@ module.exports = {
 
   startViewingDOM: function(nsp, socket) {
     person = this.findPersonBySocket(socket, this.people);
-    if (typeof person !== 'undefined') {
+    if (typeof person !== 'undefined' && person.is_cla_superuser) {
       person.startViewingDOM(socket);
     }
   },
   stopViewingDOM: function(nsp, socket) {
     person = this.findPersonBySocket(socket, this.people);
-    if (typeof person !== 'undefined') {
+    if (typeof person !== 'undefined' && person.is_cla_superuser) {
       person.stopViewingDOM(socket);
     }
   },

@@ -1,9 +1,15 @@
 'use strict';
+
+
 var app = require('express')()
   , _ = require('underscore')._
   , server = require('http').Server(app)
   , io = require('socket.io')(server)
   , nsp = io.of('/socket.io')
+  , cookie = require('cookie')
+  , http = require('http')
+  , querystring = require('querystring')
+  , Promise = require('promise')
   , bodyParser = require('body-parser')
   , peopleManager = require('./utils/peopleManager')
   , adminApp = require('./admin')
@@ -58,6 +64,55 @@ function sendConnStats() {
   });
 }
 
+
+function validate_sessionid(sessionid) {
+  return new Promise(function (fulfill, reject) {
+    var options = {
+      method: 'GET',
+      host: 'localhost',
+      port: '8001',
+      path: '/call_centre/proxy/user/me/',
+      headers: {
+        'Cookie': 'sessionid="' + sessionid + '"'
+      }
+    };
+    var request = http.request(options);
+
+    request.on('response', function (response) {
+      if (redirected_to_login(response)) {
+        reject(new Error('not authorized'));
+      }
+      fulfill();
+
+      response.on('data', function(body){
+        console.log(JSON.parse(body));
+      });
+    });
+
+
+    request.on('error', function (e) {
+      reject(new Error('Problem with request: ' + e.message));
+    });
+
+
+    request.end();
+  });
+}
+
+function redirected_to_login(response) {
+  return 'location' in response.headers;
+}
+nsp.use(function (socket, next) {
+  if (socket.request.headers.cookie) {
+    socket.request.cookie = cookie.parse(socket.request.headers.cookie);
+    validate_sessionid(socket.request.cookie.sessionid).then(next, function (e) {
+      next(new Error('not authorized: ' + e.message));
+    });
+  } else {
+    next(new Error('not authorized'));
+  }
+});
+
 nsp.on('connection', function (socket) {
   socket.on('identify', function(data) {
     peopleManager.identify(nsp, socket, data.username || data, data.usertype, data.appVersion);
@@ -89,4 +144,10 @@ nsp.on('connection', function (socket) {
     peopleManager.sendDOMChanges(nsp, socket, data);
   });
 
+
+
+
+
+
 });
+
