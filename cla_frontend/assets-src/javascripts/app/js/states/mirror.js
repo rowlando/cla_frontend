@@ -3,14 +3,14 @@
 
   var mod = angular.module('cla.states');
 
-  mod.config(function () {
+  mod.config(['AppSettings', function (AppSettings) {
     var states = mod.states || {};
 
     states.MirrorState = {
       parent: 'layout',
       name: 'mirror',
       controller: 'MirrorCtrl',
-      url: APP_BASE_URL+'mirror/',
+      url: AppSettings.BASE_URL + 'mirror/',
       templateUrl: 'mirror.html',
       resolve: {
         CanAccess: ['user', '$q', function(user, $q) {
@@ -107,5 +107,5 @@
     };
 
     mod.states = states;
-  });
+  }]);
 })();
