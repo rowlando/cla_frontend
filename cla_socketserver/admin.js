@@ -3,8 +3,7 @@ var _ = require('underscore')._
   , peopleManager = require('./utils/peopleManager')
   , utils = require('./utils/utils')
   , MSG_OPTIONS = {
-    '1': 'Please refresh your browser.',
-    '2': 'Mirror Request'
+    '1': 'Please refresh your browser.'
   };
 
 
@@ -15,13 +14,6 @@ function getViews(nsp) {
       err.status = 403;
       throw err;
     }
-  }
-
-  function mirrorRequest(req, res, socketIDs) {
-    _.each(socketIDs, function (socketID) {
-      utils.sendToClient(nsp, socketID, 'mirrorRequest', '');
-    });
-    res.send("Done");
   }
 
   return {
@@ -53,16 +45,25 @@ function getViews(nsp) {
         socketIDs = [socketIDs];
       }
 
-      if (req.body.msg == '2') {
-        return mirrorRequest(req, res, socketIDs);
-      }
       _.each(socketIDs, function (socketID) {
         utils.sendToClient(nsp, socketID, 'systemMessage', req.body.msg);
       });
       res.send("Done");
     },
 
+    stopMirroring: function(req, res) {
+      utils.sendToAllConnectedClients(nsp, 'stopMirroring', '');
 
+      res.send("Done");
+    },
+
+    sendMirrorRequest: function(req, res) {
+      var socketID = req.body.socketID;
+
+      utils.sendToClient(nsp, socketID, 'mirrorRequest', '');
+
+      res.send("Done");
+    }
   };
 }
 
@@ -73,6 +74,8 @@ module.exports = {
     app.get('/admin/', views.admin);
     app.post('/admin/send-broadcast/', views.sendBroadcast);
     app.post('/admin/send-to-clients/', views.sendToClients);
+    app.post('/admin/stop-mirroring/', views.stopMirroring);
+    app.post('/admin/mirror-request/', views.sendMirrorRequest);
     app.get('/admin/peopleMap/', views.peopleMap);
   }
 }

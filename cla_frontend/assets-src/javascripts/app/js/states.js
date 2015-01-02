@@ -33,19 +33,38 @@
       controller: 'MirrorCtrl',
       url: APP_BASE_URL+'mirror/',
       templateUrl: 'mirror.html',
-      onEnter: ['postal', '$window', function(postal, $window) {
+      resolve: {
+        CanAccess: ['user', '$q', function(user, $q) {
+          var deferred = $q.defer();
+
+          if (!!user.is_cla_superuser) {
+            deferred.resolve(true);
+          } else {
+            deferred.reject({
+              modal: true,
+              title: 'You can\'t access this page',
+              msg: 'Permissions required',
+              goto: 'case_list'
+            });
+          }
+          return deferred.promise;
+        }]
+      },
+      onEnter: ['postal', '$window', 'TreeMirror', function(postal, $window, TreeMirror) {
         var document = $window.document;
         var base;
         var mirror = new TreeMirror(document, {
           createElement: function (tagName) {
+            var node;
+
             if (tagName === 'SCRIPT') {
-              var node = document.createElement('NO-SCRIPT');
+              node = document.createElement('NO-SCRIPT');
               node.style.display = 'none';
               return node;
             }
 
             if (tagName === 'HEAD') {
-              var node = document.createElement('HEAD');
+              node = document.createElement('HEAD');
               node.appendChild(document.createElement('BASE'));
               node.firstChild.href = base;
               return node;
@@ -77,7 +96,7 @@
           data: {}
         });
 
-        postal.subscribe({
+        this.mirrorSubscriber = postal.subscribe({
           channel: 'mirror',
           topic: 'mirror',
           callback: function (data){
@@ -96,6 +115,10 @@
         });
       }],
       onExit: ['postal', function (postal) {
+        if (this.mirrorSubscriber !== undefined) {
+          this.mirrorSubscriber.unsubscribe();
+        }
+
         postal.publish({
           channel: 'mirror',
           topic: 'stopViewingDOM',

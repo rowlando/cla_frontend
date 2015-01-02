@@ -10,6 +10,14 @@
       return $window.lunr;
     }
   ])
+    .factory('TreeMirror', ['$window', function($window){
+      return $window.TreeMirror;
+    }
+  ])
+    .factory('TreeMirrorClient', ['$window', function($window){
+      return $window.TreeMirrorClient;
+    }
+  ])
     .factory('Raven', ['$window', function($window){
       return $window.Raven;
     }

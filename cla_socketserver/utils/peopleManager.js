@@ -6,10 +6,10 @@ var _ = require('underscore')._
 module.exports = {
 	people: {},
 
-	identify: function(nsp, socket, username, userType, appVersion) {
+	identify: function(nsp, socket, username, userType, appVersion, meData) {
     var person = this.people[username];
     if (typeof person === 'undefined') {
-      person = new Person(username, userType);
+      person = new Person(username, userType, meData);
       this.people[username] = person;
     }
 
@@ -56,6 +56,13 @@ module.exports = {
     }
 	},
 
+  execIfClaSuperuser: function(socket, callback) {
+    person = this.findPersonBySocket(socket, this.people);
+    if (typeof person !== 'undefined' && person.is_cla_superuser) {
+      callback(person);
+    }
+  },
+
   sendDOMChanges: function(nsp, socket, data) {
     person = this.findPersonBySocket(socket, this.people);
     if (typeof person !== 'undefined') {
@@ -64,16 +71,15 @@ module.exports = {
   },
 
   startViewingDOM: function(nsp, socket) {
-    person = this.findPersonBySocket(socket, this.people);
-    if (typeof person !== 'undefined' && person.is_cla_superuser) {
+    this.execIfClaSuperuser(socket, function(person) {
       person.startViewingDOM(socket);
-    }
+    });
   },
+
   stopViewingDOM: function(nsp, socket) {
-    person = this.findPersonBySocket(socket, this.people);
-    if (typeof person !== 'undefined' && person.is_cla_superuser) {
+    this.execIfClaSuperuser(socket, function(person) {
       person.stopViewingDOM(socket);
-    }
+    });
   },
 
 	getPeopleViewingCase: function(caseref) {

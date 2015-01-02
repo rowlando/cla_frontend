@@ -82,10 +82,9 @@ function validate_sessionid(sessionid) {
       if (redirected_to_login(response)) {
         reject(new Error('not authorized'));
       }
-      fulfill();
 
       response.on('data', function(body){
-        console.log(JSON.parse(body));
+        fulfill(JSON.parse(body));
       });
     });
 
@@ -105,9 +104,15 @@ function redirected_to_login(response) {
 nsp.use(function (socket, next) {
   if (socket.request.headers.cookie) {
     socket.request.cookie = cookie.parse(socket.request.headers.cookie);
-    validate_sessionid(socket.request.cookie.sessionid).then(next, function (e) {
-      next(new Error('not authorized: ' + e.message));
-    });
+    validate_sessionid(socket.request.cookie.sessionid).then(
+      function(data) {
+        socket.meData = data;
+        next();
+      },
+      function(e) {
+        next(new Error('not authorized: ' + e.message));
+      })
+    ;
   } else {
     next(new Error('not authorized'));
   }
@@ -115,7 +120,9 @@ nsp.use(function (socket, next) {
 
 nsp.on('connection', function (socket) {
   socket.on('identify', function(data) {
-    peopleManager.identify(nsp, socket, data.username || data, data.usertype, data.appVersion);
+    peopleManager.identify(
+      nsp, socket, data.username || data, data.usertype, data.appVersion, socket.meData
+    );
     sendConnStats();
   });
 
@@ -143,11 +150,5 @@ nsp.on('connection', function (socket) {
   socket.on('mirror', function(data){
     peopleManager.sendDOMChanges(nsp, socket, data);
   });
-
-
-
-
-
-
 });
 

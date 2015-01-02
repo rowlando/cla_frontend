@@ -1,10 +1,11 @@
 var _ = require('underscore')._;
 
 
-function Person(username, userType) {
+function Person(username, userType, meData) {
   this.username = username;
   this.userType = userType;
-  this.is_cla_superuser = false;
+  this.meData = meData || {};
+  this.is_cla_superuser = !!this.meData.is_cla_superuser;
   this.connections = {};
 };
 

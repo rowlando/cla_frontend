@@ -3,7 +3,7 @@
   'use strict';
 
   angular.module('cla.services')
-    .factory('cla.bus', ['postal', '$rootScope', '_', 'appUtils', 'flash', function (postal, $rootScope, _, appUtils, flash) {
+    .factory('cla.bus', ['postal', '$rootScope', '_', 'appUtils', 'flash', 'TreeMirrorClient', function (postal, $rootScope, _, appUtils, flash, TreeMirrorClient) {
 
       function init(user) {
         // io is global reference to socket.io
@@ -50,6 +50,7 @@
         });
 
         // VIEWING DOM
+
         postal.subscribe({
           channel: 'mirror',
           topic: 'startViewingDOM',
@@ -91,6 +92,10 @@
           socket.onclose = function(){
             mirror.disconnect();
           };
+
+          socket.on('stopMirroring', function () {
+            mirror.disconnect();
+          });
         });
 
         socket.on('mirror', function(data) {
