@@ -14,9 +14,7 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 
 TEMPLATE_DEBUG = DEBUG
 
-ADMINS = (
-    ('CLA', 'cla-alerts@digital.justice.gov.uk'),
-)
+ADMINS = ()
 
 MANAGERS = ADMINS
 
